@@ -1,9 +1,0 @@
-The assignment:
-
-Create an app that is capable of importing the attached MOCK_DATA.csv and visualize it on the screen.
-
-Keep in mind the following:
-1. We prefer the app to be an Angular 6+ app.
-2. I should be able to select this file from my computer and see the results on screen.
-3. I should be able to filter the results based on minimal issue count.
-4. Act as if this code is meant to be production code for a Bank.
