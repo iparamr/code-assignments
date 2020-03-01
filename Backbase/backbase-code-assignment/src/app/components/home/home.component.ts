@@ -3,6 +3,7 @@ import { UploadService } from '../../services/upload.service';
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { GridOptions } from 'ag-grid-community';
 
 @Component({
   selector: 'app-home',
@@ -14,9 +15,8 @@ export class HomeComponent implements OnInit {
   @ViewChild('fileUpload', {static: false})
   fileUpload: ElementRef;
   files = [];
-  file: any;
-  columnDefs;
   rowData = [];
+  public gridOptionsQueryResults: GridOptions;
   constructor(private uploadService: UploadService) { }
 
   ngOnInit(): void {
@@ -24,24 +24,45 @@ export class HomeComponent implements OnInit {
   }
 
   initGrid() {
-    this.columnDefs = [
-      {headerName: 'First name', field: 'First name', sortable: true, filter: true},
-      {headerName: 'Sur name', field: 'Sur name', sortable: true, filter: true},
-      {headerName: 'Issue count', field: 'Issue count', sortable: true, filter: true},
-      {headerName: 'Date of birth', field: 'Date of birth', sortable: true, filter: true}
-    ];
+    this.gridOptionsQueryResults = {
+      enableColResize: true,
+      enableSorting: true,
+      enableFilter: true,
+      rowSelection: 'multiple',
+      rowDeselection: true,
+      localeText: { noRowsToShow: 'No Data to show' },
+      context: { componentParent: this }
+    } as GridOptions;
+    this.rowData = [];
+  }
+
+  private setGridQueryResults(): void {
+
+    const columnDefs: Array<any> = [] as any;
+    const cols = this.rowData.length > 0 ? Object.keys(this.rowData[0]) : [];
+
+    cols.forEach((col, i) => {
+      const obj: any = { headerName: col, field: col, sortable: true, filter: true };
+      columnDefs.push(obj);
+    });
+
+    this.gridOptionsQueryResults.api.setColumnDefs(columnDefs);
+    this.gridOptionsQueryResults.api.setRowData(this.rowData);
+
+    if (columnDefs.length > 0 && columnDefs.length <= 7) {
+      this.gridOptionsQueryResults.api.sizeColumnsToFit();
+    }
+
+    if (this.rowData && this.rowData.length > 0) {
+      this.gridOptionsQueryResults.api.hideOverlay();
+    }
   }
 
   onClick() {
     const fileUpload = this.fileUpload.nativeElement;
     fileUpload.onchange = () => {
-      // for (let index = 0; index < fileUpload.files.length; index++) {
-      //   const file = fileUpload.files[index];
-      //   this.files.push({ data: file, inProgress: false, progress: 0});
-      // }
-      this.file = fileUpload.files[0];
-      // this.uploadFiles();
-      this.uploadDocument(this.file);
+      const file = fileUpload.files[0];
+      this.uploadDocument(file);
     };
     fileUpload.click();
   }
@@ -50,8 +71,9 @@ export class HomeComponent implements OnInit {
     const fileReader = new FileReader();
     fileReader.onload = (e) => {
       this.rowData = this.csvToJSON(fileReader.result);
+      this.setGridQueryResults();
     };
-    fileReader.readAsText(this.file);
+    fileReader.readAsText(file);
   }
 
   csvToJSON(csv) {
@@ -74,36 +96,5 @@ export class HomeComponent implements OnInit {
     }
     // return JSON.stringify(result); // JSON
     return result; // JavaScript object
-  }
-
-  uploadFiles() {
-    this.fileUpload.nativeElement.value = '';
-    this.files.forEach(file => {
-      this.uploadFile(file);
-    });
-  }
-
-  uploadFile(file) {
-    const formData = new FormData();
-    formData.append('file', file.data);
-    file.inProgress = true;
-    this.uploadService.upload(formData).pipe(
-      map(event => {
-        switch (event.type) {
-          case HttpEventType.UploadProgress:
-            file.progress = Math.round(event.loaded * 100 / event.total);
-            break;
-          case HttpEventType.Response:
-            return event;
-        }
-      }),
-      catchError((error: HttpErrorResponse) => {
-        file.inProgress = false;
-        return of(`${file.data.name} upload failed.`);
-      })).subscribe((event: any) => {
-      if (typeof (event) === 'object') {
-        console.log(event.body);
-      }
-    });
   }
 }
