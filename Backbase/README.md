@@ -30,7 +30,7 @@ The \--open (or just \-o) option automatically opens your browser to http://
 
 ## App Preview
 ### Home Page
-![Home Page](https://imgur.com/pE2d1Xz)
+![Home Page](https://imgur.com/pE2d1Xz.jpg)
 
 ### ReadMe Page
-![ReadMe Page](https://imgur.com/SW2ApDO)
+![ReadMe Page](https://imgur.com/SW2ApDO.jpg)
